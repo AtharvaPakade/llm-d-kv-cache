@@ -245,10 +245,27 @@ func (p *Pool) processEventBatch(ctx context.Context, batch *EventBatch, podIden
 				parentRequestKey = key
 			}
 
-			requestKeys, err := p.tokenProcessor.TokensToKVBlockKeys(parentRequestKey, ev.Tokens, effectiveModelName, ev.ExtraKeys)
+			var chunkedMMHashes [][]kvblock.MMHash
+			for _, ek := range ev.ExtraKeys {
+				if ek == nil {
+					chunkedMMHashes = append(chunkedMMHashes, nil)
+					continue
+				}
+				var blockMMHash []kvblock.MMHash
+				for _, mmEK := range ek.MultiModal {
+					mmHash := kvblock.MMHash{
+						Hash:   mmEK.Hash,
+						Offset: mmEK.Offset,
+					}
+					blockMMHash = append(blockMMHash, mmHash)
+				}
+				chunkedMMHashes = append(chunkedMMHashes, blockMMHash)
+			}
+
+			requestKeys, err := p.tokenProcessor.TokensToKVBlockKeys(parentRequestKey, ev.Tokens, effectiveModelName, chunkedMMHashes)
 			if err != nil {
 				debugLogger.Error(err, "Failed to generate request keys",
-					"parentRequestKey", parentRequestKey, "effectiveModelName", effectiveModelName, "extraKeys", ev.ExtraKeys)
+					"parentRequestKey", parentRequestKey, "effectiveModelName", effectiveModelName, "chunkedMMHashes", chunkedMMHashes)
 				continue
 			}
 

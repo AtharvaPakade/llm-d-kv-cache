@@ -39,7 +39,7 @@ type mockTokenProcessor struct {
 	receivedTokens []uint32
 }
 
-func (m *mockTokenProcessor) TokensToKVBlockKeys(_ kvblock.BlockHash, tokens []uint32, _ string, _ []*kvblock.ExtraKeys) ([]kvblock.BlockHash, error) {
+func (m *mockTokenProcessor) TokensToKVBlockKeys(_ kvblock.BlockHash, tokens []uint32, _ string, _ [][]kvblock.MMHash) ([]kvblock.BlockHash, error) {
 	m.receivedTokens = tokens
 	return m.blockKeys, nil
 }
